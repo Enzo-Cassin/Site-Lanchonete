@@ -1,9 +1,11 @@
-﻿using Site_Lanchonete.ViewModels;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Site_Lanchonete.ViewModels;
 
 namespace Site_Lanchonete.Controllers
 {
+    [AllowAnonymous]
     public class AccountController : Controller
     {
         private readonly UserManager<IdentityUser> _userManager;
