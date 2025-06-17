@@ -2,11 +2,11 @@
 using Site_Lanchonete.Models;
 using Site_Lanchonete.Repositories;
 using Site_Lanchonete.Repositories.Interfaces;
+using Site_Lanchonete.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Site_Lanchonete.Services;
-
+using ReflectionIT.Mvc.Paging;
 namespace Site_Lanchonete;
 public class Startup
 {
@@ -17,25 +17,25 @@ public class Startup
 
     public IConfiguration Configuration { get; }
 
-    // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
         services.AddIdentity<IdentityUser, IdentityRole>()
-            .AddEntityFrameworkStores<AppDbContext>()
-            .AddDefaultTokenProviders();
+             .AddEntityFrameworkStores<AppDbContext>()
+             .AddDefaultTokenProviders();
 
-        services.Configure<IdentityOptions>(options =>
-        {
-            // Configurações de senha, configuração padrão comentada na linha
-            options.Password.RequireDigit = false; // true
-            options.Password.RequireLowercase = false; // true
-            options.Password.RequireUppercase = false; // true
-            options.Password.RequireNonAlphanumeric = false; // true
-            options.Password.RequiredLength = 3; // 6
-            options.Password.RequiredUniqueChars = 1; // 1
-        });
+        //services.Configure<IdentityOptions>(options =>
+        //{
+        //    // Default Password settings.
+        //    options.Password.RequireDigit = false;
+        //    options.Password.RequireLowercase = false;
+        //    options.Password.RequireNonAlphanumeric = false;
+        //    options.Password.RequireUppercase = false;
+        //    options.Password.RequiredLength = 3;
+        //    options.Password.RequiredUniqueChars = 1;
+        //});
 
         services.AddTransient<ILancheRepository, LancheRepository>();
         services.AddTransient<ICategoriaRepository, CategoriaRepository>();
@@ -53,15 +53,28 @@ public class Startup
 
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         services.AddScoped(sp => CarrinhoCompra.GetCarrinho(sp));
-        
+
         services.AddControllersWithViews();
-        
+
+        services.AddPaging(options =>
+        {
+            options.ViewName = "Bootstrap4";
+            options.PageParameterName = "pageindex";
+        });
+
         services.AddMemoryCache();
+        //services.AddDistributedMemoryCache();
+
         services.AddSession();
+        //{
+        //    options.IdleTimeout = TimeSpan.FromSeconds(10);
+        //    options.Cookie.HttpOnly = true;
+        //    options.Cookie.IsEssential = true;
+        //});
     }
 
-    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ISeedUserRoleInitial seedUserRoleInitial)
+    public void Configure(IApplicationBuilder app,
+        IWebHostEnvironment env, ISeedUserRoleInitial seedUserRoleInitial)
     {
         if (env.IsDevelopment())
         {
@@ -70,7 +83,6 @@ public class Startup
         else
         {
             app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
         app.UseHttpsRedirection();
@@ -78,7 +90,9 @@ public class Startup
         app.UseStaticFiles();
         app.UseRouting();
 
+        //cria os perfis
         seedUserRoleInitial.SeedRoles();
+        //cria os usuários e atribui ao perfil
         seedUserRoleInitial.SeedUsers();
 
         app.UseSession();
@@ -86,16 +100,17 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
 
+
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllerRoute(
-                name: "areas",
-                pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");
+             name: "areas",
+             pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");
 
             endpoints.MapControllerRoute(
-                name: "categiruaFiltro",
-                pattern: "Lanche/{action}/{categoria?}",
-                defaults: new { Controller = "Lanche", action = "List" });
+               name: "categoriaFiltro",
+               pattern: "Lanche/{action}/{categoria?}",
+               defaults: new { Controller = "Lanche", action = "List" });
 
             endpoints.MapControllerRoute(
                 name: "default",
