@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReflectionIT.Mvc.Paging;
+using Site_Lanchonete.ViewModels;
 
 namespace LanchesMac.Areas.Admin.Controllers
 {
@@ -18,11 +19,30 @@ namespace LanchesMac.Areas.Admin.Controllers
             _context = context;
         }
 
+        public IActionResult PedidoLanches(int? id)
+        {
+            var pedido = _context.Pedidos
+                         .Include(pd => pd.PedidoItens)
+                         .ThenInclude(l => l.Lanche)
+                         .FirstOrDefault(p => p.PedidoId == id);
+
+            if (pedido == null)
+            {
+                Response.StatusCode = 404;
+                return View("PedidoNotFound", id.Value);
+            }
+
+            PedidoLancheViewModel pedidoLanches = new PedidoLancheViewModel()
+            {
+                Pedido = pedido,
+                PedidoDetalhes = pedido.PedidoItens
+            };
+
+            return View(pedidoLanches);
+        }
+
+
         // GET: Admin/AdminPedidos
-        //public async Task<IActionResult> Index()
-        //{
-        //    return View(await _context.Pedidos.ToListAsync());
-        //}
         public async Task<IActionResult> Index(string filter, int pageindex = 1, string sort = "Nome")
         {
             var resultado = _context.Pedidos.AsNoTracking()
