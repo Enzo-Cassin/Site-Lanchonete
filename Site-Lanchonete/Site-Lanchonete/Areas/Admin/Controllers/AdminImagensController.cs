@@ -23,9 +23,10 @@ namespace Site_Lanchonete.Areas.Admin.Controllers
             return View();
         }
 
+
         public async Task<IActionResult> UploadFiles(List<IFormFile> files)
         {
-            if ( files == null || files.Count == 0)
+            if (files == null || files.Count == 0)
             {
                 ViewData["Erro"] = "Error: Arquivo(s) não slecionado(s)";
                 return View(ViewData);
@@ -44,7 +45,7 @@ namespace Site_Lanchonete.Areas.Admin.Controllers
 
             foreach (var formFile in files)
             {
-                if(formFile.FileName.Contains(".jpg") || formFile.FileName.Contains(".gif") || formFile.FileName.Contains(".png"))
+                if (formFile.FileName.Contains(".jpg") || formFile.FileName.Contains(".gif") || formFile.FileName.Contains(".png"))
                 {
                     var fileNameWithPath = string.Concat(filePath, "\\", formFile.FileName);
 
@@ -59,6 +60,42 @@ namespace Site_Lanchonete.Areas.Admin.Controllers
 
             ViewData["Resultado"] = $"{files.Count} arquivos foram enviados ao servidos, com tamanho total de: {size} bytes";
             return View(ViewData);
+        }
+
+                public IActionResult GetImagens()
+        {
+            FileManagerModel model = new FileManagerModel();
+
+            var userImagesPath = Path.Combine(_hostingEnviroment.WebRootPath, _myConfig.NomePastaImagensProdutos);
+
+            DirectoryInfo dir = new DirectoryInfo(userImagesPath);
+
+            FileInfo[] files = dir.GetFiles();
+
+            model.PathImagesProduto = _myConfig.NomePastaImagensProdutos;
+
+            if(files.Length == 0)
+            {
+                ViewData["Erro"] = $"Nenhum arquivo encontrado na pasta {userImagesPath}";
+            }
+
+            model.Files = files;
+
+            return View(model);
+        }
+
+        public IActionResult Deletefile(string fname)
+        {
+            string _imagemDeleta = Path.Combine(_hostingEnviroment.WebRootPath, _myConfig.NomePastaImagensProdutos + "\\", fname);
+
+            if ((System.IO.File.Exists(_imagemDeleta)))
+            {
+                System.IO.File.Delete(_imagemDeleta);
+
+                ViewData["Deletado"] = $"Arquivo(s) {_imagemDeleta} deletado com sucesso";
+            }
+
+            return View("index");
         }
     }
 }
