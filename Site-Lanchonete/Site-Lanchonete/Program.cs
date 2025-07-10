@@ -1,3 +1,4 @@
+using FastReport.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ReflectionIT.Mvc.Paging;
@@ -13,6 +14,8 @@ var builder = WebApplication.CreateBuilder(args);
 #region Configure Services
 var connection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>( options => options.UseSqlServer(connection));
+
+FastReport.Utils.RegisteredObjects.AddConnection(typeof(MsSqlDataConnection));
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>()
@@ -39,6 +42,7 @@ builder.Services.AddTransient<IPedidoRepository, PedidoRepository>();
 builder.Services.AddScoped<ISeedUserRoleInitial, SeedUserRoleInitial>();
 builder.Services.AddScoped<RelatorioVendasService>();
 builder.Services.AddScoped<GraficoVendasService>();
+builder.Services.AddScoped<RelatorioLanchesService>();
 
 builder.Services.AddAuthorization(options =>
 {
@@ -86,6 +90,9 @@ else
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+
+app.UseFastReport();
+
 app.UseRouting();
 
 // Para criar os perfis dos usuarios foi necessario usar um metodo para utilizar a instancia do app para criar os perfis

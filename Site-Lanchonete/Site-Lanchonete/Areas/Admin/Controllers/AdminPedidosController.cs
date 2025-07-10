@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using ReflectionIT.Mvc.Paging;
 using Site_Lanchonete.ViewModels;
 
-namespace LanchesMac.Areas.Admin.Controllers
+namespace Site_Lanchonete.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = "Admin")]
