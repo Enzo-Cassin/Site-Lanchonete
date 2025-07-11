@@ -103,7 +103,8 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-
+// Utilizando MVC e não Minimal API
+#pragma warning disable ASP0014
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllerRoute(
@@ -119,6 +120,7 @@ app.UseEndpoints(endpoints =>
         name: "default",
         pattern: "{controller=Home}/{action=Index}/{id?}");
 });
+#pragma warning restore ASP0014
 #endregion
 
 app.Run();
