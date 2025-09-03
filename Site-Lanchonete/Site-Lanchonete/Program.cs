@@ -21,7 +21,7 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
-/* Para fins de teste foi comentado as configurações de senha para criar uma senha mais facil para acesso rapido
+// Foram alteradas as configurações de senha para criar uma senha mais facil para acesso rapido
 builder.Services.Configure<IdentityOptions>(options =>
 {
     // Default Password settings.
@@ -32,7 +32,6 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequiredLength = 3;
     options.Password.RequiredUniqueChars = 1;
 });
-*/
 
 builder.Services.Configure<ConfigurationImagens>(builder.Configuration.GetSection("ConfigurationPastaImagens"));
 
@@ -77,6 +76,29 @@ builder.Services.AddSession();
 
 #region Configure
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    try
+    {
+        // IMPORTANTE: Substitua 'ApplicationDbContext' pelo nome da sua classe de contexto.
+        var context = services.GetRequiredService<AppDbContext>();
+
+        // Aplica quaisquer migrações pendentes para o contexto no banco de dados.
+        // Criará o banco de dados se ele ainda não existir.
+        context.Database.Migrate();
+
+        // Opcional: Você também pode chamar um método para popular o banco de dados com dados iniciais (seeding).
+        // SeedData.Initialize(services); 
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Um erro ocorreu durante a migração do banco de dados.");
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
